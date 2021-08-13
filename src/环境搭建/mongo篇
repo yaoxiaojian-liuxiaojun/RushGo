@@ -1,1 +1,77 @@
-1
+环境搭建mongo篇
+一、虚拟机安装
+    参考：
+二、安装mongo
+   1.官网找到你需要版本的连接
+   https://www.mongodb.com/try/download/community
+   on-premises-->mongodb community server--> available downloads -->copy link
+   获得安装包路径：https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-amazon-5.0.2.tgz
+   2.使用命令下载压缩包
+   cd /home/webo/  ## /home/webo/   为mongo安装位置
+   wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-amazon-5.0.2.tgz
+   3.解压安装包
+   tar -zxvf mongodb-shell-linux-x86_64-amazon-5.0.2.tgz
+   4.改名文件夹
+   mv mongodb-shell-linux-x86_64-amazon-5.0.2.tgz mongo
+   5.新建mongo文件存放路径和日志存放路径
+   cd /home/webo/mongo
+   mkdir data
+   mkdir log
+   6.创建mongo 日志记录文件
+   cd  log
+   touch mongodb.log
+   cd ../
+   7.赋予 data、log文件夹操作权限
+   chmod 777 data
+   chmod 777 log
+   #一般不给777
+   8.进入bin文件夹新建conf文件
+   cd /bin
+   vim mongo.conf
+   ---------------------------
+   bind_ip=0.0.0.0 # 默认127.0.0.1
+   dbpath=/home/webo/mongo/data  #文件存储路径
+   logpath=/home/webo/mongo/log/mongodb.log # 日志文件存储路径
+   port=27017 #默认端口
+   fork=true #后台开启
+   ---------------------------
+   9.启动mongo
+   ./mongod -f  mongo.conf #/home/webo/mongo/bin 目录下执行
+   或者
+   ./home/webo/mongo/bin/mongod -f  mongo.conf # 任意目录执行
+   10.新增mongo用户
+   ./mongo #/home/webo/mongo/bin 目录下执行进入mongo
+    show dbs #查看默认数据库
+    use company
+    db.createUser({user:"JohnDoe",pwd:"123456789",roles:[{ "role" : "dbAdmin", "db" : "company" }]})
+    #语句解释：一个名为JohnDoe的用户被赋予数据库company管理员角色的权限,他的登录密码为123456789,
+            并且他的账号只针对company有效,否则项目会提示Authentication failed。
+            给用户赋予admin权限可以解决问题,但不提倡,这里不做说明。、
+    show users #查看用户是否添加成功
+    exit # 退出mongo
+
+三、mongo开启事务
+   #有需要就看,没需要可以不看
+   #mongo 添加副本集支持事务
+   ./mongod --shoutdown   #/home/webo/mongo/bin 目录下执行 # 关闭已开启的mongo单机实例
+   ./home/mongo/bin/mongod --port 27017 --dbpath "/home/mongo/data" --logpath /home/mongo/log/mongodb.log --replSet rs0 --fork # 后台启动mongo
+   ./mongo #/home/webo/mongo/bin 目录下执行进入mongo
+   rs.initiate()
+   rs.add("<hostname><:port>")
+   # 详细描述参考 https://mongoing.com/docs/tutorial/convert-standalone-to-replica-set.html
+   exit
+
+四、其他问题
+   有些博客推荐修改配置达到可以任意目录启动mongo
+   vim /etc/profile
+   ---------------------------------
+   export PATH=/home/mongo/bin:$PATH
+   ---------------------------------
+   我的看法是--没必要
+
+  #其他参考
+  https://www.runoob.com/mongodb/mongodb-create-database.html
+  https://www.runoob.com/mongodb/mongodb-replication.html
+  https://blog.csdn.net/qq_43605654/article/details/90906643
+
+
